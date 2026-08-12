@@ -14,10 +14,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     title: "LogicLab — Visualizzatore di porte logiche",
-    description: "Simulatore interattivo di porte logiche AND e OR.",
+    description: "Simulatore interattivo delle sette porte logiche fondamentali.",
     openGraph: {
       title: "Accendi la logica — LogicLab",
-      description: "Visualizzatore interattivo di porte AND e OR.",
+      description: "Visualizzatore interattivo di AND, OR, NOT, NAND, NOR, XOR e XNOR.",
       images: [{ url: `${base}/og.png`, width: 1200, height: 630, alt: "LogicLab, accendi la logica" }],
       locale: "it_IT",
       type: "website",
