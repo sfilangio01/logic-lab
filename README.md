@@ -19,4 +19,4 @@ Apri `http://localhost:3000`.
 - `npm run build` — build di produzione
 - `npm test` — build e verifica del rendering
 
-Realizzato con React, Next.js, Tailwind CSS e vinext.
+Realizzato con React, Next.js e Tailwind CSS. Il progetto è configurato per il deploy su Vercel.
