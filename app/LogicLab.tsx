@@ -87,10 +87,12 @@ export default function LogicLab() {
         </div>
         <div className="hero-board" aria-hidden="true">
           <span className="board-tag">LIVE PREVIEW</span>
-          <div className="board-inputs"><i className="on" /><i /></div>
-          <div className="board-lines"><i /><i /></div>
-          <GateShape info={gates[5]} />
-          <div className="board-output"><i />1</div>
+          <div className="hero-circuit">
+            <GateShape info={gates[5]} />
+            <i className="circuit-pin pin-a on" />
+            <i className="circuit-pin pin-b" />
+            <span className="circuit-output"><i />1</span>
+          </div>
           <span className="board-formula">Y = A ⊕ B</span>
         </div>
         <div className="hero-stats"><span><b>07</b> PORTE</span><span><b>02</b> INPUT</span><span><b>01</b> BIT DI OUTPUT</span></div>

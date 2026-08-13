@@ -27,12 +27,21 @@
 .gate-shape{width:200px;height:120px}.gate-shape.compact{width:96px;height:58px}
 .gate-symbol-img{display:block;width:100%;height:100%;object-fit:contain}
 .gate-palette .gate-shape{transform:none;margin-top:8px}.atlas-card-top .gate-shape.compact{width:108px;height:65px}.gate-palette button.active .gate-symbol-img,.atlas-card-top .gate-symbol-img{filter:invert(1)}
-.hero-board>.gate-shape{left:34%;top:31%;width:190px;height:114px;transform:none}
+.hero-circuit{position:absolute;left:12%;right:18%;top:29%;aspect-ratio:5/3}
+.hero-circuit>.gate-shape{position:absolute;inset:0;width:100%;height:100%;transform:none}
+.circuit-pin{position:absolute;left:0;width:17px;height:17px;transform:translate(-50%,-50%);border:2px solid var(--ink);border-radius:50%;background:var(--paper);z-index:2}
+.circuit-pin.pin-a{top:29.16%}.circuit-pin.pin-b{top:70.83%}
+.circuit-pin.on{background:var(--lime);box-shadow:0 0 0 8px rgba(200,255,61,.3)}
+.circuit-output{position:absolute;left:100%;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:12px;font:700 28px var(--font-mono),monospace;z-index:2}
+.circuit-output>i{display:block;width:17px;height:17px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 8px rgba(200,255,61,.28)}
 .wire-zone>.gate-shape{left:40%;top:60px;width:200px;height:120px;box-shadow:none;transform:none}
 .wire-a{top:95px}.wire-b{bottom:95px}.wire-out{left:calc(40% + 200px);top:120px}.wire-zone.unary .wire-a{top:120px}
 @media(max-width:800px){.wire-zone>.gate-shape{left:32%;top:66px;width:180px;height:108px}.wire-a{right:68%;top:98px}.wire-b{right:68%;bottom:67px}.wire-out{left:calc(32% + 180px);top:120px}.wire-zone.unary .wire-a{top:120px}}
 @media(max-width:600px){
-  .hero-board>.gate-shape{left:31%;top:31%;width:155px;height:93px;transform:none}
+  .hero-circuit{left:10%;right:20%;top:29%}
+  .circuit-pin{width:15px;height:15px}
+  .circuit-output{gap:9px;font-size:25px}
+  .circuit-output>i{width:15px;height:15px}
   .gate-palette{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:142px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
   .gate-palette::-webkit-scrollbar,.atlas-grid::-webkit-scrollbar{display:none}
   .gate-palette button{min-height:120px;scroll-snap-align:start;border-right:1px solid var(--line);border-bottom:0}
