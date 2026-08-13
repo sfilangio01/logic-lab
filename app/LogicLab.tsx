@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 
 type Gate = "AND" | "OR" | "NOT" | "NAND" | "NOR" | "XOR" | "XNOR";
 
@@ -49,10 +50,9 @@ function Toggle({ label, value, onChange }: { label: string; value: number; onCh
 }
 
 function GateShape({ info, compact = false }: { info: GateInfo; compact?: boolean }) {
-  const inverted = ["NAND", "NOR", "XNOR"].includes(info.name);
   return (
-    <span className={`gate-shape gate-${info.name.toLowerCase()} ${compact ? "compact" : ""} ${inverted ? "inverted" : ""}`} aria-hidden="true">
-      <b>{info.symbol}</b>{inverted && <i />}
+    <span className={`gate-shape gate-${info.name.toLowerCase()} ${compact ? "compact" : ""}`} aria-hidden="true">
+      <Image className="gate-symbol-img" src={`/gates/${info.name.toLowerCase()}.svg`} alt="" width={200} height={120} priority={info.name === "XOR"} />
     </span>
   );
 }
