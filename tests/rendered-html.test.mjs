@@ -10,3 +10,12 @@ test("includes the seven-gate interactive simulator", async () => {
   assert.match(source, /resultFor\(gate, inputA, inputB\)/);
   assert.doesNotMatch(source, /codex-preview|react-loading-skeleton/i);
 });
+
+test("includes binary conversion and calculation tools", async () => {
+  const source = await readFile(new URL("../app/LogicLab.tsx", import.meta.url), "utf8");
+  assert.match(source, /CONVERTITORE LIVE/);
+  assert.match(source, /CALCOLATRICE BINARIA/);
+  assert.match(source, /Divisioni successive/);
+  assert.match(source, /"AND", "OR", "XOR"/);
+  assert.match(source, /value \^ weight/);
+});

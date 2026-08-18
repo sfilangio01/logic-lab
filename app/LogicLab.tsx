@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 
 type Gate = "AND" | "OR" | "NOT" | "NAND" | "NOR" | "XOR" | "XNOR";
+type BinaryOperation = "+" | "−" | "×" | "÷" | "AND" | "OR" | "XOR";
 
 type GateInfo = {
   name: Gate;
@@ -26,6 +27,24 @@ const gates: GateInfo[] = [
 ];
 
 const binaryRows = [[0, 0], [0, 1], [1, 0], [1, 1]];
+const bitWeights = [128, 64, 32, 16, 8, 4, 2, 1];
+
+function binaryOperation(a: number, b: number, operation: BinaryOperation) {
+  switch (operation) {
+    case "+": return a + b;
+    case "−": return a - b;
+    case "×": return a * b;
+    case "÷": return b === 0 ? null : Math.floor(a / b);
+    case "AND": return a & b;
+    case "OR": return a | b;
+    case "XOR": return a ^ b;
+  }
+}
+
+function formatBinary(value: number, minWidth = 8) {
+  const sign = value < 0 ? "−" : "";
+  return `${sign}${Math.abs(value).toString(2).padStart(minWidth, "0")}`;
+}
 
 function resultFor(gate: Gate, a: number, b: number) {
   switch (gate) {
@@ -61,9 +80,32 @@ export default function LogicLab() {
   const [gate, setGate] = useState<Gate>("AND");
   const [inputA, setInputA] = useState(1);
   const [inputB, setInputB] = useState(0);
+  const [decimalValue, setDecimalValue] = useState(42);
+  const [binaryA, setBinaryA] = useState("00101101");
+  const [binaryB, setBinaryB] = useState("00000111");
+  const [binaryOp, setBinaryOp] = useState<BinaryOperation>("+");
   const info = gates.find((item) => item.name === gate) ?? gates[0];
   const output = useMemo(() => resultFor(gate, inputA, inputB), [gate, inputA, inputB]);
   const rows = info.unary ? [[0, 0], [1, 0]] : binaryRows;
+  const eightBits = decimalValue.toString(2).padStart(8, "0");
+  const decimalA = Number.parseInt(binaryA || "0", 2);
+  const decimalB = Number.parseInt(binaryB || "0", 2);
+  const calculation = binaryOperation(decimalA, decimalB, binaryOp);
+  const calculationBits = calculation === null ? "NON DEFINITO" : formatBinary(calculation);
+  const conversionSteps = useMemo(() => {
+    if (decimalValue === 0) return [{ value: 0, quotient: 0, remainder: 0 }];
+    const steps = [];
+    let value = decimalValue;
+    while (value > 0) {
+      steps.push({ value, quotient: Math.floor(value / 2), remainder: value % 2 });
+      value = Math.floor(value / 2);
+    }
+    return steps;
+  }, [decimalValue]);
+
+  const updateBinary = (value: string, setter: (next: string) => void) => {
+    setter(value.replace(/[^01]/g, "").slice(0, 8));
+  };
 
   const selectGate = (next: Gate) => {
     setGate(next);
@@ -74,7 +116,7 @@ export default function LogicLab() {
     <main>
       <nav className="topbar" aria-label="Navigazione principale">
         <a className="brand" href="#top" aria-label="LogicLab, torna all’inizio"><span className="brand-mark"><i /><i /><i /></span><span>LOGIC<span>LAB</span></span></a>
-        <div className="nav-links"><a href="#simulatore">Simulatore</a><a href="#atlante">Porte logiche</a><a href="#teoria">Teoria</a></div>
+        <div className="nav-links"><a href="#simulatore">Simulatore</a><a href="#binario">Numeri binari</a><a href="#atlante">Porte logiche</a><a href="#teoria">Teoria</a></div>
         <span className="status"><i /> LAB ONLINE</span>
       </nav>
 
@@ -152,9 +194,65 @@ export default function LogicLab() {
         </div>
       </section>
 
+      <section className="binary-section" id="binario">
+        <div className="section-heading binary-heading">
+          <div><span className="section-index">02 / NUMERI BINARI</span><h2>Conta come un computer.</h2></div>
+          <p>Converti, calcola e osserva<br />il peso reale di ogni bit.</p>
+        </div>
+
+        <div className="binary-lab">
+          <article className="bit-converter">
+            <div className="binary-panel-title"><span>CONVERTITORE LIVE</span><strong>8 BIT / 0—255</strong></div>
+            <label className="decimal-control">
+              <span>NUMERO DECIMALE</span>
+              <input type="number" min="0" max="255" value={decimalValue} onChange={(event) => setDecimalValue(Math.min(255, Math.max(0, Number(event.target.value) || 0)))} />
+            </label>
+
+            <div className="bit-ruler" aria-label={`${decimalValue} in binario è ${eightBits}`}>
+              {bitWeights.map((weight, index) => {
+                const active = eightBits[index] === "1";
+                return (
+                  <button key={weight} type="button" className={active ? "active" : ""} aria-pressed={active} aria-label={`Bit di peso ${weight}: ${active ? 1 : 0}`} onClick={() => setDecimalValue((value) => value ^ weight)}>
+                    <small>{weight}</small><b>{active ? 1 : 0}</b><span>2<sup>{7 - index}</sup></span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="base-results">
+              <div><span>BASE 2</span><strong>{eightBits}</strong></div>
+              <div><span>BASE 8</span><strong>{decimalValue.toString(8).toUpperCase()}</strong></div>
+              <div><span>BASE 10</span><strong>{decimalValue}</strong></div>
+              <div><span>BASE 16</span><strong>{decimalValue.toString(16).toUpperCase()}</strong></div>
+            </div>
+          </article>
+
+          <article className="conversion-method">
+            <div className="binary-panel-title"><span>COME SI CONVERTE</span><strong>÷ 2</strong></div>
+            <h3>Divisioni successive.</h3>
+            <p>Dividi per 2 e leggi i resti dal basso verso l’alto.</p>
+            <div className="division-steps">
+              {conversionSteps.map((step, index) => <div key={`${step.value}-${index}`}><code>{step.value} ÷ 2 = {step.quotient}</code><span>RESTO <b>{step.remainder}</b></span></div>)}
+            </div>
+            <div className="read-back"><span>LETTURA ↑</span><strong>{decimalValue}₁₀ = {Number(decimalValue).toString(2)}₂</strong></div>
+          </article>
+        </div>
+
+        <article className="binary-calculator">
+          <div className="binary-panel-title"><span>CALCOLATRICE BINARIA</span><strong>ARITMETICA + BITWISE</strong></div>
+          <div className="calculation-row">
+            <label><span>OPERANDO A</span><input value={binaryA} inputMode="numeric" aria-label="Operando A in binario" onChange={(event) => updateBinary(event.target.value, setBinaryA)} /><small>{decimalA} in decimale</small></label>
+            <label><span>OPERAZIONE</span><select value={binaryOp} aria-label="Operazione binaria" onChange={(event) => setBinaryOp(event.target.value as BinaryOperation)}>{(["+", "−", "×", "÷", "AND", "OR", "XOR"] as BinaryOperation[]).map((operation) => <option key={operation}>{operation}</option>)}</select><small>{binaryOp === "÷" ? "quoziente intero" : binaryOp.length > 1 ? "bit per bit" : "aritmetica"}</small></label>
+            <label><span>OPERANDO B</span><input value={binaryB} inputMode="numeric" aria-label="Operando B in binario" onChange={(event) => updateBinary(event.target.value, setBinaryB)} /><small>{decimalB} in decimale</small></label>
+            <div className={`binary-result ${calculation === null ? "invalid" : ""}`}><span>RISULTATO</span><strong>{calculationBits}</strong><small>{calculation === null ? "impossibile dividere per zero" : `${decimalA} ${binaryOp} ${decimalB} = ${calculation} in decimale`}</small></div>
+          </div>
+          <p className="operator-note"><strong>AND</strong> conserva i bit entrambi a 1 · <strong>OR</strong> conserva almeno un 1 · <strong>XOR</strong> vale 1 quando i bit sono diversi.</p>
+        </article>
+      </section>
+
       <section className="atlas-section" id="atlante">
         <div className="section-heading light">
-          <div><span className="section-index">02 / ATLANTE</span><h2>Sette modi di decidere.</h2></div>
+          <div><span className="section-index">03 / ATLANTE</span><h2>Sette modi di decidere.</h2></div>
           <p>Ogni porta applica una regola diversa.<br />Cliccane una per provarla nel circuito.</p>
         </div>
         <div className="atlas-grid">
@@ -171,7 +269,7 @@ export default function LogicLab() {
       </section>
 
       <section className="theory-section" id="teoria">
-        <div className="theory-title"><span className="section-index">03 / TEORIA ESSENZIALE</span><h2>Dal bit<br />al circuito.</h2><p>Le porte logiche sono i mattoni elementari di processori, memorie e dispositivi digitali.</p></div>
+        <div className="theory-title"><span className="section-index">04 / TEORIA ESSENZIALE</span><h2>Dal bit<br />al circuito.</h2><p>Le porte logiche sono i mattoni elementari di processori, memorie e dispositivi digitali.</p></div>
         <div className="theory-content">
           <article><span>01</span><div><h3>Il bit: zero oppure uno</h3><p>Un circuito digitale rappresenta l’informazione con due stati. <strong>0</strong> indica tipicamente tensione bassa, <strong>1</strong> tensione alta. Questi stati si chiamano valori booleani.</p></div></article>
           <article><span>02</span><div><h3>Input, regola, output</h3><p>Ogni porta riceve uno o più input, applica una regola logica e produce un solo output. La tabella di verità elenca il risultato per ogni combinazione possibile.</p></div></article>
