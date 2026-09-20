@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import LogicLab from "./LogicLab";
 
 export const metadata: Metadata = {
-  title: "LogicLab — Visualizzatore di porte logiche",
+  title: "LogicLab — Porte logiche e numeri binari interattivi",
   description:
-    "Sperimenta con le sette porte logiche fondamentali, modifica gli input e osserva il circuito in tempo reale.",
+    "Simula le sette porte logiche, esplora le tabelle di verità, converti numeri e prova operazioni binarie passo dopo passo.",
 };
 
 export default function Home() {
