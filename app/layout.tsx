@@ -13,19 +13,28 @@ export async function generateMetadata(): Promise<Metadata> {
   const base = `${protocol}://${host}`;
 
   return {
-    title: "LogicLab — Visualizzatore di porte logiche",
-    description: "Simulatore interattivo delle sette porte logiche fondamentali.",
+    metadataBase: new URL(base),
+    title: "LogicLab — Porte logiche e numeri binari interattivi",
+    description: "Simula le sette porte logiche, esplora le tabelle di verità, converti numeri e prova operazioni binarie passo dopo passo.",
+    applicationName: "LogicLab",
+    alternates: { canonical: "/" },
+    keywords: ["porte logiche", "numeri binari", "simulatore logica", "tabella di verità", "conversione binaria"],
+    robots: { index: true, follow: true },
     openGraph: {
-      title: "Accendi la logica — LogicLab",
-      description: "Visualizzatore interattivo di AND, OR, NOT, NAND, NOR, XOR e XNOR.",
-      images: [{ url: `${base}/og.png`, width: 1200, height: 630, alt: "LogicLab, accendi la logica" }],
+      title: "LogicLab — Porte logiche e numeri binari",
+      description: "Un laboratorio interattivo per simulare porte logiche, conversioni e operazioni binarie.",
+      url: base,
+      siteName: "LogicLab",
+      images: [{ url: `${base}/og.png`, width: 1200, height: 630, alt: "LogicLab, laboratorio interattivo di logica digitale" }],
       locale: "it_IT",
       type: "website",
     },
-    twitter: { card: "summary_large_image", title: "Accendi la logica — LogicLab", images: [`${base}/og.png`] },
+    twitter: { card: "summary_large_image", title: "LogicLab — Porte logiche e numeri binari", description: "Simula, converti e calcola in binario.", images: [`${base}/og.png`] },
   };
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="it"><body className={`${display.variable} ${mono.variable}`}>{children}</body></html>;
+  const themeScript = `(function(){try{var t=localStorage.getItem('logiclab-theme');if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}document.documentElement.dataset.theme=t}catch(e){}})()`;
+  const structuredData = { "@context": "https://schema.org", "@type": "EducationalApplication", name: "LogicLab", applicationCategory: "EducationalApplication", operatingSystem: "Web", inLanguage: "it", description: "Laboratorio interattivo di porte logiche e numeri binari." };
+  return <html lang="it" suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head><body className={`${display.variable} ${mono.variable}`}><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />{children}</body></html>;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 
 type Gate = "AND" | "OR" | "NOT" | "NAND" | "NOR" | "XOR" | "XNOR";
@@ -17,13 +17,13 @@ type GateInfo = {
 };
 
 const gates: GateInfo[] = [
-  { name: "AND", formula: "A · B", symbol: "&", tagline: "Tutti veri", rule: "L’output vale 1 soltanto quando entrambi gli input valgono 1.", example: "Un macchinario parte se protezione e pulsante sono attivi." },
-  { name: "OR", formula: "A + B", symbol: "≥1", tagline: "Almeno uno", rule: "L’output vale 1 quando almeno uno dei due input vale 1.", example: "Un allarme suona se si apre una porta oppure una finestra." },
-  { name: "NOT", formula: "¬A", symbol: "1", tagline: "Il contrario", rule: "Inverte l’unico input: 0 diventa 1 e 1 diventa 0.", example: "Una luce si accende quando il sensore non rileva luminosità." , unary: true },
-  { name: "NAND", formula: "¬(A · B)", symbol: "&", tagline: "Non entrambi", rule: "È una AND seguita da NOT: vale 0 solo quando entrambi gli input sono 1.", example: "È una porta universale: da sola può costruire ogni circuito logico." },
-  { name: "NOR", formula: "¬(A + B)", symbol: "≥1", tagline: "Nessuno vero", rule: "È una OR seguita da NOT: vale 1 soltanto quando entrambi gli input sono 0.", example: "Segnala che nessuno dei due sistemi è attivo." },
-  { name: "XOR", formula: "A ⊕ B", symbol: "=1", tagline: "Diversi", rule: "L’output vale 1 quando gli input sono diversi tra loro.", example: "Riconosce la parità ed è il cuore dei circuiti sommatori." },
-  { name: "XNOR", formula: "¬(A ⊕ B)", symbol: "=", tagline: "Uguali", rule: "L’output vale 1 quando i due input hanno lo stesso valore.", example: "Confronta due bit e segnala quando coincidono." },
+  { name: "AND", formula: "A · B", symbol: "&", tagline: "Tutti veri", rule: "L’uscita vale 1 soltanto quando entrambi gli ingressi valgono 1.", example: "Un macchinario parte se protezione e pulsante sono attivi." },
+  { name: "OR", formula: "A + B", symbol: "≥1", tagline: "Uno o entrambi", rule: "L’uscita vale 1 se A, B oppure entrambi valgono 1. Qui + indica OR logico, non una somma.", example: "Un allarme suona se si apre una porta oppure una finestra." },
+  { name: "NOT", formula: "¬A", symbol: "1", tagline: "Il contrario", rule: "Inverte l’unico ingresso: 0 diventa 1 e 1 diventa 0.", example: "Una luce si accende quando il sensore non rileva luminosità." , unary: true },
+  { name: "NAND", formula: "¬(A · B)", symbol: "&", tagline: "Non entrambi", rule: "È una AND seguita da NOT: vale 0 solo quando entrambi gli ingressi sono 1.", example: "È una porta universale: da sola può costruire ogni circuito logico." },
+  { name: "NOR", formula: "¬(A + B)", symbol: "≥1", tagline: "Nessuno vero", rule: "È una OR seguita da NOT: vale 1 soltanto quando entrambi gli ingressi sono 0.", example: "Segnala che nessuno dei due sistemi è attivo." },
+  { name: "XOR", formula: "A ⊕ B", symbol: "=1", tagline: "Esattamente uno", rule: "L’uscita vale 1 quando esattamente uno dei due ingressi vale 1.", example: "Riconosce la parità ed è il cuore dei circuiti sommatori." },
+  { name: "XNOR", formula: "¬(A ⊕ B)", symbol: "=", tagline: "Uguali", rule: "L’uscita vale 1 quando i due ingressi hanno lo stesso valore.", example: "Confronta due bit e segnala quando coincidono." },
 ];
 
 const binaryRows = [[0, 0], [0, 1], [1, 0], [1, 1]];
@@ -42,8 +42,7 @@ function binaryOperation(a: number, b: number, operation: BinaryOperation) {
 }
 
 function formatBinary(value: number, minWidth = 8) {
-  const sign = value < 0 ? "−" : "";
-  return `${sign}${Math.abs(value).toString(2).padStart(minWidth, "0")}`;
+  return value.toString(2).padStart(minWidth, "0");
 }
 
 function resultFor(gate: Gate, a: number, b: number) {
@@ -61,7 +60,7 @@ function resultFor(gate: Gate, a: number, b: number) {
 function Toggle({ label, value, onChange }: { label: string; value: number; onChange: () => void }) {
   return (
     <button className={`input-toggle ${value ? "is-on" : ""}`} type="button" role="switch" aria-checked={Boolean(value)} aria-label={`Ingresso ${label}: ${value}. Premi per cambiare`} onClick={onChange}>
-      <span className="toggle-label">INPUT {label}</span>
+      <span className="toggle-label">INGRESSO {label}</span>
       <span className="switch-track"><span className="switch-knob" /></span>
       <strong>{value}</strong>
     </button>
@@ -80,19 +79,43 @@ export default function LogicLab() {
   const [gate, setGate] = useState<Gate>("AND");
   const [inputA, setInputA] = useState(1);
   const [inputB, setInputB] = useState(0);
-  const [decimalValue, setDecimalValue] = useState(42);
+  const [decimalInput, setDecimalInput] = useState("42");
   const [binaryA, setBinaryA] = useState("00101101");
   const [binaryB, setBinaryB] = useState("00000111");
   const [binaryOp, setBinaryOp] = useState<BinaryOperation>("+");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">(() => typeof document !== "undefined" && document.documentElement.dataset.theme === "dark" ? "dark" : "light");
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const info = gates.find((item) => item.name === gate) ?? gates[0];
   const output = useMemo(() => resultFor(gate, inputA, inputB), [gate, inputA, inputB]);
   const rows = info.unary ? [[0, 0], [1, 0]] : binaryRows;
-  const eightBits = decimalValue.toString(2).padStart(8, "0");
-  const decimalA = Number.parseInt(binaryA || "0", 2);
-  const decimalB = Number.parseInt(binaryB || "0", 2);
-  const calculation = binaryOperation(decimalA, decimalB, binaryOp);
-  const calculationBits = calculation === null ? "NON DEFINITO" : formatBinary(calculation);
+  const decimalValid = /^(0|[1-9]\d{0,2})$/.test(decimalInput) && Number(decimalInput) <= 255;
+  const decimalValue = decimalValid ? Number(decimalInput) : 0;
+  const eightBits = decimalValid ? decimalValue.toString(2).padStart(8, "0") : "————————";
+  const binaryAValid = /^[01]{1,8}$/.test(binaryA);
+  const binaryBValid = /^[01]{1,8}$/.test(binaryB);
+  const decimalA = binaryAValid ? Number.parseInt(binaryA, 2) : null;
+  const decimalB = binaryBValid ? Number.parseInt(binaryB, 2) : null;
+  const calculation = decimalA === null || decimalB === null ? undefined : binaryOperation(decimalA, decimalB, binaryOp);
+  const calculationBits = calculation === undefined ? "—" : calculation === null ? "NON DEFINITO" : calculation < 0 ? `${calculation}₁₀` : formatBinary(calculation);
+  const calculationOverflow = typeof calculation === "number" && calculation > 255;
+  const calculationNegative = typeof calculation === "number" && calculation < 0;
+  const twosComplement = calculationNegative && calculation >= -128 ? (256 + calculation).toString(2).padStart(8, "0") : null;
+  const wrappedEightBits = typeof calculation === "number" && calculation >= 0 ? (calculation & 255).toString(2).padStart(8, "0") : null;
+  const resultDetail = calculation === undefined
+    ? "Correggi gli operandi per eseguire il calcolo."
+    : calculation === null
+      ? "Non puoi dividere per zero. Imposta l’operando B a un valore diverso da 0."
+      : `${decimalA} ${binaryOp} ${decimalB} = ${calculation} in decimale`;
+  const resultNote = calculationNegative
+    ? twosComplement
+      ? `Il risultato non è rappresentabile senza segno. In complemento a due su 8 bit: ${twosComplement}₂.`
+      : "Il risultato è fuori dal range signed a 8 bit (−128…127)."
+    : calculationOverflow
+      ? `Overflow: servono ${calculation.toString(2).length} bit. Su 8 bit restano ${wrappedEightBits}₂.`
+      : "Gli operandi sono unsigned a 8 bit; i risultati aritmetici possono richiedere più di 8 bit.";
   const conversionSteps = useMemo(() => {
+    if (!decimalValid) return [];
     if (decimalValue === 0) return [{ value: 0, quotient: 0, remainder: 0 }];
     const steps = [];
     let value = decimalValue;
@@ -101,34 +124,67 @@ export default function LogicLab() {
       value = Math.floor(value / 2);
     }
     return steps;
-  }, [decimalValue]);
+  }, [decimalValid, decimalValue]);
 
-  const updateBinary = (value: string, setter: (next: string) => void) => {
-    setter(value.replace(/[^01]/g, "").slice(0, 8));
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    window.localStorage.setItem("logiclab-theme", theme);
+  }, [theme]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [menuOpen]);
+
+  const closeMenu = () => setMenuOpen(false);
+
+  const handleGateKeys = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(event.key)) return;
+    event.preventDefault();
+    const current = gates.findIndex((item) => item.name === gate);
+    const nextIndex = event.key === "Home" ? 0 : event.key === "End" ? gates.length - 1 : event.key === "ArrowRight" ? (current + 1) % gates.length : (current - 1 + gates.length) % gates.length;
+    const next = gates[nextIndex].name;
+    setGate(next);
+    requestAnimationFrame(() => document.getElementById(`gate-tab-${next.toLowerCase()}`)?.focus());
   };
 
   const selectGate = (next: Gate) => {
     setGate(next);
+    window.history.replaceState(null, "", "#simulatore");
     document.getElementById("simulatore")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
     <main>
-      <nav className="topbar" aria-label="Navigazione principale">
+      <header className="topbar">
         <a className="brand" href="#top" aria-label="LogicLab, torna all’inizio"><span className="brand-mark"><i /><i /><i /></span><span>LOGIC<span>LAB</span></span></a>
-        <div className="nav-links"><a href="#simulatore">Simulatore</a><a href="#binario">Numeri binari</a><a href="#atlante">Porte logiche</a><a href="#teoria">Teoria</a></div>
-        <span className="status"><i /> LAB ONLINE</span>
-      </nav>
+        <nav className="nav-links" aria-label="Navigazione principale"><a href="#simulatore">Simulatore</a><a href="#binario">Numeri binari</a><a href="#atlante">Porte logiche</a><a href="#teoria">Teoria</a></nav>
+        <div className="topbar-actions">
+          <span className="status"><i /> LAB ATTIVO</span>
+          <button className="theme-toggle" type="button" suppressHydrationWarning onClick={() => setTheme((value) => value === "light" ? "dark" : "light")} aria-label={theme === "light" ? "Attiva tema scuro" : "Attiva tema chiaro"}><span aria-hidden="true">{theme === "light" ? "☾" : "☀"}</span><b>{theme === "light" ? "NOTTE" : "GIORNO"}</b></button>
+          <button ref={menuButtonRef} className="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="mobile-navigation" aria-label={menuOpen ? "Chiudi menu" : "Apri menu"} onClick={() => setMenuOpen((value) => !value)}><span aria-hidden="true">{menuOpen ? "×" : "☰"}</span></button>
+        </div>
+        <nav id="mobile-navigation" className={`mobile-navigation ${menuOpen ? "open" : ""}`} aria-label="Navigazione mobile" hidden={!menuOpen}>
+          <a href="#simulatore" onClick={closeMenu}>Simula una porta</a><a href="#teoria" onClick={closeMenu}>Impara le basi</a><a href="#atlante" onClick={closeMenu}>Confronta le 7 porte</a><a href="#binario" onClick={closeMenu}>Calcola in binario</a>
+        </nav>
+      </header>
 
       <section className="hero" id="top">
         <div className="hero-copy">
-          <div className="eyebrow"><span>●</span> LABORATORIO DI ELETTRONICA DIGITALE</div>
+          <div className="eyebrow"><span>●</span> LABORATORIO INTERATTIVO DI LOGICA DIGITALE</div>
           <h1>La logica,<br /><em>in movimento.</em></h1>
-          <p>Sette porte. Due bit. Infinite possibilità.<br />Prova, osserva e impara come ragionano i circuiti.</p>
-          <div className="hero-actions"><a className="primary-cta" href="#simulatore">APRI IL SIMULATORE <span>↘</span></a><a href="#atlante">ESPLORA LE 7 PORTE</a></div>
+          <p>Impara porte logiche e numeri binari: cambia gli ingressi, <br />osserva l’uscita e scopri perché il risultato cambia.</p>
+          <div className="hero-actions"><a className="primary-cta" href="#simulatore">INIZIA IL PERCORSO <span>↘</span></a><a href="#binario">VAI ALLA CALCOLATRICE</a></div>
         </div>
         <div className="hero-board" aria-hidden="true">
-          <span className="board-tag">LIVE PREVIEW</span>
+          <span className="board-tag">ANTEPRIMA XOR</span>
           <div className="hero-circuit">
             <GateShape info={gates[5]} />
             <i className="circuit-pin pin-a on" />
@@ -137,7 +193,7 @@ export default function LogicLab() {
           </div>
           <span className="board-formula">Y = A ⊕ B</span>
         </div>
-        <div className="hero-stats"><span><b>07</b> PORTE</span><span><b>02</b> INPUT</span><span><b>01</b> BIT DI OUTPUT</span></div>
+        <div className="hero-stats"><span><b>07</b> PORTE</span><span><b>02</b> INGRESSI MAX</span><span><b>01</b> USCITA</span></div>
       </section>
 
       <section className="simulator-section" id="simulatore">
@@ -146,21 +202,25 @@ export default function LogicLab() {
           <p>Scegli una porta, cambia gli ingressi<br />e segui il flusso fino al risultato.</p>
         </div>
 
-        <div className="gate-palette" role="tablist" aria-label="Scegli una porta logica">
+        <div className="quick-start" aria-label="Come usare il simulatore"><strong>LA TUA PRIMA PORTA IN 30 SECONDI</strong><ol><li>Scegli una porta.</li><li>Imposta gli ingressi su 0 oppure 1.</li><li>Confronta uscita e tabella di verità.</li></ol></div>
+        <p className="scroll-hint">Scorri per scegliere una delle 7 porte <span>↔</span></p>
+
+        <div className="gate-palette" role="tablist" aria-label="Scegli una porta logica" onKeyDown={handleGateKeys}>
           {gates.map((item, index) => (
-            <button key={item.name} type="button" role="tab" aria-selected={gate === item.name} className={gate === item.name ? "active" : ""} onClick={() => setGate(item.name)}>
+            <button key={item.name} id={`gate-tab-${item.name.toLowerCase()}`} type="button" role="tab" aria-selected={gate === item.name} aria-controls="gate-panel" tabIndex={gate === item.name ? 0 : -1} className={gate === item.name ? "active" : ""} onClick={() => setGate(item.name)}>
               <small>0{index + 1}</small><GateShape info={item} compact /><span><strong>{item.name}</strong><em>{item.tagline}</em></span>
             </button>
           ))}
         </div>
 
-        <div className={`lab-panel ${output ? "output-on" : ""}`}>
-          <div className="panel-top"><span>LIVE CIRCUIT / {gate}</span><span><i /> AGGIORNAMENTO ISTANTANEO</span></div>
-          <div className="circuit" aria-live="polite" aria-label={`Porta ${gate}. Input A ${inputA}${info.unary ? "" : `, input B ${inputB}`}, output ${output}`}>
+        <div id="gate-panel" role="tabpanel" aria-labelledby={`gate-tab-${gate.toLowerCase()}`} tabIndex={0} className={`lab-panel ${output ? "output-on" : ""}`}>
+          <div className="panel-top"><span>CIRCUITO ATTIVO / {gate}</span><span><i /> AGGIORNAMENTO ISTANTANEO</span></div>
+          <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">Porta {gate}: ingresso A {inputA}{info.unary ? "" : `, ingresso B ${inputB}`}, uscita {output}.</p>
+          <div className="circuit" aria-label={`Porta ${gate}. Ingresso A ${inputA}${info.unary ? "" : `, ingresso B ${inputB}`}, uscita ${output}`}>
             <div className={`inputs-column ${info.unary ? "unary" : ""}`}>
               <Toggle label="A" value={inputA} onChange={() => setInputA((v) => 1 - v)} />
               {!info.unary && <Toggle label="B" value={inputB} onChange={() => setInputB((v) => 1 - v)} />}
-              {info.unary && <div className="unused-input"><span>INPUT B</span><strong>—</strong><small>NON USATO</small></div>}
+              {info.unary && <div className="unused-input"><span>INGRESSO B</span><strong>—</strong><small>NON USATO</small></div>}
             </div>
 
             <div className={`wire-zone ${info.unary ? "unary" : ""}`} aria-hidden="true">
@@ -170,7 +230,7 @@ export default function LogicLab() {
               <div className={`wire wire-out ${output ? "hot" : ""}`}><i /></div>
             </div>
 
-            <div className="output-card"><span>OUTPUT Y</span><strong>{output}</strong><small><i /> {output ? "SEGNALE ATTIVO" : "SEGNALE INATTIVO"}</small></div>
+            <div className="output-card"><span>USCITA Y</span><strong>{output}</strong><small><i /> {output ? "SEGNALE ATTIVO" : "SEGNALE INATTIVO"}</small></div>
           </div>
 
           <div className="formula-row">
@@ -180,14 +240,15 @@ export default function LogicLab() {
         </div>
 
         <div className="truth-strip">
-          <div className="truth-intro"><span className="section-index">TABELLA LIVE</span><h3>Tutti i casi possibili.</h3><p>La riga verde corrisponde agli input impostati nel circuito.</p></div>
+          <div className="truth-intro"><span className="section-index">TABELLA ATTUALE</span><h3>Tutti i casi possibili.</h3><p>La riga evidenziata corrisponde agli ingressi impostati nel circuito.</p></div>
           <div className="truth-table-wrap">
             <table>
-              <thead><tr><th>INPUT A</th>{!info.unary && <th>INPUT B</th>}<th>OUTPUT Y</th></tr></thead>
+              <caption className="sr-only">Tabella di verità della porta {gate}</caption>
+              <thead><tr><th scope="col">INGRESSO A</th>{!info.unary && <th scope="col">INGRESSO B</th>}<th scope="col">USCITA Y</th></tr></thead>
               <tbody>{rows.map(([a, b]) => {
                 const value = resultFor(gate, a, b);
                 const current = a === inputA && (info.unary || b === inputB);
-                return <tr key={`${a}${b}`} className={current ? "current" : ""}><td>{a}</td>{!info.unary && <td>{b}</td>}<td><span className={value ? "bit-on" : ""}>{value}</span>{current && <small>LIVE</small>}</td></tr>;
+                return <tr key={`${a}${b}`} className={current ? "current" : ""}><td>{current && <span className="sr-only">Combinazione attualmente simulata. </span>}{a}</td>{!info.unary && <td>{b}</td>}<td><span className={value ? "bit-on" : ""}>{value}</span>{current && <small>ATTUALE</small>}</td></tr>;
               })}</tbody>
             </table>
           </div>
@@ -202,28 +263,31 @@ export default function LogicLab() {
 
         <div className="binary-lab">
           <article className="bit-converter">
-            <div className="binary-panel-title"><span>CONVERTITORE LIVE</span><strong>8 BIT / 0—255</strong></div>
+            <div className="binary-panel-title"><span>CONVERTITORE INTERATTIVO</span><strong>8 BIT / 0—255</strong></div>
             <label className="decimal-control">
-              <span>NUMERO DECIMALE</span>
-              <input type="number" min="0" max="255" value={decimalValue} onChange={(event) => setDecimalValue(Math.min(255, Math.max(0, Number(event.target.value) || 0)))} />
+              <span>INTERO DECIMALE</span>
+              <input type="text" inputMode="numeric" pattern="[0-9]*" value={decimalInput} aria-invalid={!decimalValid} aria-describedby="decimal-help decimal-error" onChange={(event) => setDecimalInput(event.target.value)} />
             </label>
+            <p id="decimal-help" className="field-help">Inserisci un numero intero da 0 a 255.</p>
+            {!decimalValid && <p id="decimal-error" className="field-error" role="alert">Usa solo numeri interi compresi tra 0 e 255.</p>}
 
-            <div className="bit-ruler" aria-label={`${decimalValue} in binario è ${eightBits}`}>
+            <div className="bit-ruler" aria-label={decimalValid ? `${decimalValue} in binario è ${eightBits}` : "Conversione non disponibile: numero decimale non valido"}>
               {bitWeights.map((weight, index) => {
-                const active = eightBits[index] === "1";
+                const active = decimalValid && eightBits[index] === "1";
                 return (
-                  <button key={weight} type="button" className={active ? "active" : ""} aria-pressed={active} aria-label={`Bit di peso ${weight}: ${active ? 1 : 0}`} onClick={() => setDecimalValue((value) => value ^ weight)}>
+                  <button key={weight} type="button" className={active ? "active" : ""} aria-pressed={active} aria-label={`Bit di peso ${weight}: ${active ? 1 : 0}`} onClick={() => setDecimalInput(String((decimalValid ? decimalValue : 0) ^ weight))}>
                     <small>{weight}</small><b>{active ? 1 : 0}</b><span>2<sup>{7 - index}</sup></span>
                   </button>
                 );
               })}
             </div>
+            <p className="bit-help">Tocca un bit per cambiarlo tra 0 e 1.</p>
 
             <div className="base-results">
               <div><span>BASE 2</span><strong>{eightBits}</strong></div>
-              <div><span>BASE 8</span><strong>{decimalValue.toString(8).toUpperCase()}</strong></div>
-              <div><span>BASE 10</span><strong>{decimalValue}</strong></div>
-              <div><span>BASE 16</span><strong>{decimalValue.toString(16).toUpperCase()}</strong></div>
+              <div><span>BASE 8</span><strong>{decimalValid ? decimalValue.toString(8).toUpperCase() : "—"}</strong></div>
+              <div><span>BASE 10</span><strong>{decimalValid ? decimalValue : "—"}</strong></div>
+              <div><span>BASE 16</span><strong>{decimalValid ? decimalValue.toString(16).toUpperCase() : "—"}</strong></div>
             </div>
           </article>
 
@@ -234,19 +298,19 @@ export default function LogicLab() {
             <div className="division-steps">
               {conversionSteps.map((step, index) => <div key={`${step.value}-${index}`}><code>{step.value} ÷ 2 = {step.quotient}</code><span>RESTO <b>{step.remainder}</b></span></div>)}
             </div>
-            <div className="read-back"><span>LETTURA ↑</span><strong>{decimalValue}₁₀ = {Number(decimalValue).toString(2)}₂</strong></div>
+            <div className="read-back"><span>LETTURA ↑</span><strong>{decimalValid ? `${decimalValue}₁₀ = ${decimalValue.toString(2)}₂` : "In attesa di un intero valido"}</strong></div>
           </article>
         </div>
 
         <article className="binary-calculator">
-          <div className="binary-panel-title"><span>CALCOLATRICE BINARIA</span><strong>ARITMETICA + BITWISE</strong></div>
+          <div className="binary-panel-title"><span>CALCOLATRICE BINARIA</span><strong>ARITMETICA E OPERAZIONI BIT A BIT</strong></div>
           <div className="calculation-row">
-            <label><span>OPERANDO A</span><input value={binaryA} inputMode="numeric" aria-label="Operando A in binario" onChange={(event) => updateBinary(event.target.value, setBinaryA)} /><small>{decimalA} in decimale</small></label>
-            <label><span>OPERAZIONE</span><select value={binaryOp} aria-label="Operazione binaria" onChange={(event) => setBinaryOp(event.target.value as BinaryOperation)}>{(["+", "−", "×", "÷", "AND", "OR", "XOR"] as BinaryOperation[]).map((operation) => <option key={operation}>{operation}</option>)}</select><small>{binaryOp === "÷" ? "quoziente intero" : binaryOp.length > 1 ? "bit per bit" : "aritmetica"}</small></label>
-            <label><span>OPERANDO B</span><input value={binaryB} inputMode="numeric" aria-label="Operando B in binario" onChange={(event) => updateBinary(event.target.value, setBinaryB)} /><small>{decimalB} in decimale</small></label>
-            <div className={`binary-result ${calculation === null ? "invalid" : ""}`}><span>RISULTATO</span><strong>{calculationBits}</strong><small>{calculation === null ? "impossibile dividere per zero" : `${decimalA} ${binaryOp} ${decimalB} = ${calculation} in decimale`}</small></div>
+            <label><span>OPERANDO A</span><input type="text" value={binaryA} inputMode="numeric" pattern="[01]{1,8}" maxLength={8} autoComplete="off" spellCheck={false} aria-label="Operando A in binario" aria-invalid={!binaryAValid} aria-describedby="binary-a-help binary-a-error" onChange={(event) => setBinaryA(event.target.value)} /><small id="binary-a-help">Da 1 a 8 bit, soltanto 0 e 1. {binaryAValid ? `${decimalA} in decimale.` : ""}</small>{!binaryAValid && <small id="binary-a-error" className="input-error" role="alert">Inserisci almeno un bit usando solo 0 e 1.</small>}</label>
+            <label><span>OPERAZIONE</span><select value={binaryOp} aria-label="Operazione binaria" onChange={(event) => setBinaryOp(event.target.value as BinaryOperation)}><option value="+">+ Somma</option><option value="−">− Sottrazione</option><option value="×">× Moltiplicazione</option><option value="÷">÷ Divisione intera</option><option value="AND">AND bit a bit</option><option value="OR">OR bit a bit</option><option value="XOR">XOR bit a bit</option></select><small>{binaryOp === "÷" ? "divisione intera" : binaryOp.length > 1 ? "operazione bit a bit" : "aritmetica"}</small></label>
+            <label><span>OPERANDO B</span><input type="text" value={binaryB} inputMode="numeric" pattern="[01]{1,8}" maxLength={8} autoComplete="off" spellCheck={false} aria-label="Operando B in binario" aria-invalid={!binaryBValid} aria-describedby="binary-b-help binary-b-error" onChange={(event) => setBinaryB(event.target.value)} /><small id="binary-b-help">Da 1 a 8 bit, soltanto 0 e 1. {binaryBValid ? `${decimalB} in decimale.` : ""}</small>{!binaryBValid && <small id="binary-b-error" className="input-error" role="alert">Inserisci almeno un bit usando solo 0 e 1.</small>}</label>
+            <div className={`binary-result ${calculation === null || calculation === undefined ? "invalid" : ""}`} role={calculation === null || calculation === undefined ? "alert" : "status"} aria-live="polite" aria-atomic="true"><span>{calculation === null || calculation === undefined ? "ERRORE" : "RISULTATO"}</span><strong>{calculationBits}</strong><small>{resultDetail}</small><small className="result-note">{resultNote}</small></div>
           </div>
-          <p className="operator-note"><strong>AND</strong> conserva i bit entrambi a 1 · <strong>OR</strong> conserva almeno un 1 · <strong>XOR</strong> vale 1 quando i bit sono diversi.</p>
+          <p className="operator-note"><strong>AND</strong> produce 1 se entrambi i bit sono 1 · <strong>OR</strong> produce 1 se almeno un bit è 1 · <strong>XOR</strong> produce 1 se i bit sono diversi.</p>
         </article>
       </section>
 
@@ -255,10 +319,11 @@ export default function LogicLab() {
           <div><span className="section-index">03 / ATLANTE</span><h2>Sette modi di decidere.</h2></div>
           <p>Ogni porta applica una regola diversa.<br />Cliccane una per provarla nel circuito.</p>
         </div>
-        <div className="atlas-grid">
+        <p className="scroll-hint light-hint">Scorri le schede e scegli “Prova” <span>↔</span></p>
+        <div className="atlas-grid" aria-label="Atlante delle sette porte logiche">
           {gates.map((item, index) => (
             <article className={gate === item.name ? "selected" : ""} key={item.name}>
-              <div className="atlas-card-top"><span>0{index + 1}</span><GateShape info={item} compact /></div>
+              <div className="atlas-card-top"><span>0{index + 1}{gate === item.name && <b> · SELEZIONATA</b>}</span><GateShape info={item} compact /></div>
               <h3>{item.name}</h3><span className="atlas-tagline">{item.tagline}</span>
               <code>Y = {item.formula}</code><p>{item.rule}</p>
               <div className="mini-truth">{(item.unary ? [[0, 0], [1, 0]] : binaryRows).map(([a, b]) => <span key={`${a}${b}`}>{item.unary ? a : `${a}${b}`}<b>→</b><strong>{resultFor(item.name, a, b)}</strong></span>)}</div>
@@ -272,9 +337,10 @@ export default function LogicLab() {
         <div className="theory-title"><span className="section-index">04 / TEORIA ESSENZIALE</span><h2>Dal bit<br />al circuito.</h2><p>Le porte logiche sono i mattoni elementari di processori, memorie e dispositivi digitali.</p></div>
         <div className="theory-content">
           <article><span>01</span><div><h3>Il bit: zero oppure uno</h3><p>Un circuito digitale rappresenta l’informazione con due stati. <strong>0</strong> indica tipicamente tensione bassa, <strong>1</strong> tensione alta. Questi stati si chiamano valori booleani.</p></div></article>
-          <article><span>02</span><div><h3>Input, regola, output</h3><p>Ogni porta riceve uno o più input, applica una regola logica e produce un solo output. La tabella di verità elenca il risultato per ogni combinazione possibile.</p></div></article>
+          <article><span>02</span><div><h3>Ingresso, regola, uscita</h3><p>L’<strong>ingresso (input)</strong> è il valore che entra nella porta; l’<strong>uscita (output)</strong> è il risultato. La tabella di verità elenca ogni combinazione possibile.</p></div></article>
           <article><span>03</span><div><h3>Porte universali</h3><p><strong>NAND e NOR</strong> sono speciali: combinando più porte dello stesso tipo si può ricreare qualunque altra funzione logica, persino un intero computer.</p></div></article>
-          <article><span>04</span><div><h3>Dalle porte ai computer</h3><p>Migliaia di porte formano registri e sommatori; miliardi di transistor organizzati in porte formano i moderni processori. Tutto parte da decisioni tra 0 e 1.</p></div></article>
+          <article><span>04</span><div><h3>Operazioni bit a bit e overflow</h3><p>Un’operazione <strong>bit a bit (bitwise)</strong> confronta le cifre nella stessa posizione. Si ha <strong>overflow</strong> quando il risultato richiede più bit di quelli disponibili.</p></div></article>
+          <article><span>05</span><div><h3>Dalle porte ai computer</h3><p>Migliaia di porte formano registri e sommatori; miliardi di transistor organizzati in porte formano i moderni processori. Tutto parte da decisioni tra 0 e 1.</p></div></article>
         </div>
       </section>
 
@@ -283,7 +349,7 @@ export default function LogicLab() {
         <div className="example-cards">{gates.slice(0, 4).map((item) => <article key={item.name}><strong>{item.name}</strong><p>{item.example}</p></article>)}</div>
       </section>
 
-      <footer><a className="brand" href="#top"><span className="brand-mark"><i /><i /><i /></span><span>LOGIC<span>LAB</span></span></a><p>Sette porte. Un linguaggio universale.</p><a href="#top">TORNA SU ↑</a></footer>
+      <footer><a className="brand" href="#top"><span className="brand-mark"><i /><i /><i /></span><span>LOGIC<span>LAB</span></span></a><p>Porte logiche, conversioni e calcoli binari in un unico laboratorio interattivo.</p><a href="#top">TORNA SU ↑</a></footer>
     </main>
   );
 }
