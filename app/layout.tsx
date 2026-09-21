@@ -15,6 +15,7 @@ export function generateMetadata(): Metadata {
     applicationName: "LogicLab",
     alternates: { canonical: "/" },
     keywords: ["porte logiche", "numeri binari", "simulatore logica", "tabella di verità", "conversione binaria"],
+    other: { "google-adsense-account": "ca-pub-8507948528747957" },
     robots: { index: true, follow: true },
     openGraph: {
       title: "LogicLab — Porte logiche e numeri binari",
