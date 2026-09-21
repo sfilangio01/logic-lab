@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 type Gate = "AND" | "OR" | "NOT" | "NAND" | "NOR" | "XOR" | "XNOR";
 type BinaryOperation = "+" | "−" | "×" | "÷" | "AND" | "OR" | "XOR";
@@ -165,14 +166,14 @@ export default function LogicLab() {
     <main>
       <header className="topbar">
         <a className="brand" href="#top" aria-label="LogicLab, torna all’inizio"><span className="brand-mark"><i /><i /><i /></span><span>LOGIC<span>LAB</span></span></a>
-        <nav className="nav-links" aria-label="Navigazione principale"><a href="#simulatore">Simulatore</a><a href="#binario">Numeri binari</a><a href="#atlante">Porte logiche</a><a href="#teoria">Teoria</a></nav>
+        <nav className="nav-links" aria-label="Navigazione principale"><Link href="/impara">Lezioni</Link><Link href="/esercizi">Esercizi</Link><a href="#simulatore">Simulatore</a><Link href="/porte-logiche">Porte logiche</Link></nav>
         <div className="topbar-actions">
           <span className="status"><i /> LAB ATTIVO</span>
           <button className="theme-toggle" type="button" suppressHydrationWarning onClick={() => setTheme((value) => value === "light" ? "dark" : "light")} aria-label={theme === "light" ? "Attiva tema scuro" : "Attiva tema chiaro"}><span aria-hidden="true">{theme === "light" ? "☾" : "☀"}</span><b>{theme === "light" ? "NOTTE" : "GIORNO"}</b></button>
           <button ref={menuButtonRef} className="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="mobile-navigation" aria-label={menuOpen ? "Chiudi menu" : "Apri menu"} onClick={() => setMenuOpen((value) => !value)}><span aria-hidden="true">{menuOpen ? "×" : "☰"}</span></button>
         </div>
         <nav id="mobile-navigation" className={`mobile-navigation ${menuOpen ? "open" : ""}`} aria-label="Navigazione mobile" hidden={!menuOpen}>
-          <a href="#simulatore" onClick={closeMenu}>Simula una porta</a><a href="#teoria" onClick={closeMenu}>Impara le basi</a><a href="#atlante" onClick={closeMenu}>Confronta le 7 porte</a><a href="#binario" onClick={closeMenu}>Calcola in binario</a>
+          <Link href="/impara" onClick={closeMenu}>Segui le lezioni</Link><Link href="/esercizi" onClick={closeMenu}>Allenati con gli esercizi</Link><a href="#simulatore" onClick={closeMenu}>Simula una porta</a><Link href="/porte-logiche" onClick={closeMenu}>Confronta le 7 porte</Link>
         </nav>
       </header>
 
@@ -181,7 +182,7 @@ export default function LogicLab() {
           <div className="eyebrow"><span>●</span> LABORATORIO INTERATTIVO DI LOGICA DIGITALE</div>
           <h1>La logica,<br /><em>in movimento.</em></h1>
           <p>Impara porte logiche e numeri binari: cambia gli ingressi, <br />osserva l’uscita e scopri perché il risultato cambia.</p>
-          <div className="hero-actions"><a className="primary-cta" href="#simulatore">INIZIA IL PERCORSO <span>↘</span></a><a href="#binario">VAI ALLA CALCOLATRICE</a></div>
+          <div className="hero-actions"><Link className="primary-cta" href="/impara">INIZIA IL PERCORSO <span>↗</span></Link><Link href="/esercizi">PROVA GLI ESERCIZI</Link></div>
         </div>
         <div className="hero-board" aria-hidden="true">
           <span className="board-tag">ANTEPRIMA XOR</span>
@@ -349,7 +350,7 @@ export default function LogicLab() {
         <div className="example-cards">{gates.slice(0, 4).map((item) => <article key={item.name}><strong>{item.name}</strong><p>{item.example}</p></article>)}</div>
       </section>
 
-      <footer><a className="brand" href="#top"><span className="brand-mark"><i /><i /><i /></span><span>LOGIC<span>LAB</span></span></a><p>Porte logiche, conversioni e calcoli binari in un unico laboratorio interattivo.</p><a href="#top">TORNA SU ↑</a></footer>
+      <footer><a className="brand" href="#top"><span className="brand-mark"><i /><i /><i /></span><span>LOGIC<span>LAB</span></span></a><p>Porte logiche, conversioni e calcoli binari in un unico laboratorio interattivo.</p><Link href="/privacy">PRIVACY</Link><a href="#top">TORNA SU ↑</a></footer>
     </main>
   );
 }
