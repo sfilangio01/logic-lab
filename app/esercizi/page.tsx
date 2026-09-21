@@ -31,6 +31,15 @@ export default function ExercisesPage() {
       </header>
 
       <ExerciseRunner />
+      <section className="learning-method" aria-labelledby="exercise-guide-title">
+        <span className="learning-section-label">RIPASSA PRIMA DI RISPONDERE</span>
+        <h2 id="exercise-guide-title">Tre modi per prepararti.</h2>
+        <div className="learning-method-grid">
+          <article><strong>01 / LE REGOLE</strong><h3>Porte logiche</h3><p>Confronta AND, OR, NOT, NAND, NOR, XOR e XNOR con simboli e tabelle di verità.</p><Link href="/porte-logiche">ESPLORA LE PORTE ↗</Link></article>
+          <article><strong>02 / I NUMERI</strong><h3>Bit e binario</h3><p>Ripassa il valore posizionale dei bit prima di affrontare conversioni e operazioni.</p><Link href="/impara/bit-e-sistema-binario">LEGGI LA LEZIONE ↗</Link></article>
+          <article><strong>03 / I CIRCUITI</strong><h3>Segui il segnale</h3><p>Prova il mezzo sommatore e il multiplexer, poi torna a prevedere le uscite da solo.</p><Link href="/visualizza">APRI I VISUAL ↗</Link></article>
+        </div>
+      </section>
     </main></EduShell>
   );
 }

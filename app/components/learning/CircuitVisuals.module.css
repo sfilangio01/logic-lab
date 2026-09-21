@@ -1,0 +1,29 @@
+.stage{min-width:0;padding:clamp(18px,3vw,38px);background-color:var(--surface-2);background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:24px 24px;display:flex;flex-direction:column;justify-content:center;gap:20px}
+.diagram{display:block;width:100%;height:auto;min-width:0;overflow:visible;font-family:var(--font-mono),monospace}
+.muxMobile{display:none}
+.guide,.highWire,.selectedWire,.selectWire,.selectedRoute,.dormantRoute{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.guide{stroke:var(--muted-strong);stroke-width:3;opacity:.72}
+.highWire{stroke:var(--lime-dark);stroke-width:5}
+.selectedWire,.selectedRoute{stroke:#326dd4;stroke-width:5}
+.selectWire{stroke:var(--fg);stroke-width:3;stroke-dasharray:7 5}
+.dormantRoute{stroke:var(--muted-strong);stroke-width:2;opacity:.58;stroke-dasharray:5 6}
+.node{fill:var(--fg)}
+.routeNode{fill:#326dd4}
+.gate,.muxBody{fill:var(--surface);stroke:var(--fg);stroke-width:3}
+.gateText,.muxTitle{fill:var(--fg);font-size:23px;font-weight:700}
+.muxSubtitle{fill:var(--muted-strong);font-size:13px;font-weight:700}
+.pinLabel{fill:var(--fg);font-size:15px;font-weight:700}
+.mobilePinLabel{fill:var(--fg);font-size:16px;font-weight:700}
+.controlRow{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap}
+.bitButton,.output{min-width:74px;min-height:65px;padding:8px 10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.bitButton{cursor:pointer;transition:background-color .18s,border-color .18s,transform .18s}
+.bitButton:hover{transform:translateY(-2px);border-color:var(--fg)}
+.bitButton:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+.bitOn,.outputOn{background:var(--lime);color:#11130f;border-color:var(--lime-dark)}
+.bitButton span,.output span{font:700 10px var(--font-mono),monospace;letter-spacing:.05em;white-space:nowrap}
+.bitButton strong,.output strong{font:700 24px var(--font-mono),monospace;line-height:1}
+.controlArrow{align-self:center;font:700 25px var(--font-mono),monospace;margin:auto 2px;color:var(--muted-strong)}
+.caption{margin:0;padding:12px 14px;border-left:4px solid #326dd4;background:var(--surface);color:var(--fg);font:700 clamp(11px,1.3vw,15px) var(--font-mono),monospace;line-height:1.5}
+@media(max-width:680px){.stage{padding:20px 12px}.muxDesktop{display:none}.muxMobile{display:block;width:100%;height:auto;font-family:var(--font-mono),monospace}.controlRow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}.bitButton,.output{min-width:0;min-height:60px;padding:6px 3px}.bitButton span,.output span{font-size:8px}.bitButton strong,.output strong{font-size:20px}.controlArrow{font-size:18px;margin:auto}.pinLabel{font-size:17px}}
+@media(max-width:390px){.controlRow{grid-template-columns:repeat(2,minmax(0,1fr))}.controlArrow{display:none}.caption{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.bitButton{transition:none}}

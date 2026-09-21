@@ -282,7 +282,7 @@ export const lessons: Lesson[] = [
     description: "Impara a elencare tutti gli ingressi e a valutare espressioni logiche senza saltare casi.",
     duration: "18 minuti",
     level: "Intermedio",
-    prerequisites: ["Porte fondamentali", "Porte derivate"],
+    prerequisites: ["Porte logiche fondamentali", "Porte derivate e confronto"],
     objectives: [
       "Determinare il numero di righe necessario.",
       "Compilare una tabella per una formula composta.",
@@ -339,7 +339,7 @@ export const lessons: Lesson[] = [
     description: "Combina più porte per sommare bit, confrontare valori e prendere decisioni digitali.",
     duration: "20 minuti",
     level: "Intermedio",
-    prerequisites: ["Tabelle di verità", "Porte derivate"],
+    prerequisites: ["Tabelle di verità", "Porte derivate e confronto"],
     objectives: [
       "Seguire un segnale attraverso più porte.",
       "Spiegare il funzionamento di un half-adder.",

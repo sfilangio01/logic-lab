@@ -6,7 +6,7 @@ export function LessonCheckpoint({ checkpoint, index }: { checkpoint: LearningCh
       <span className="checkpoint-number">CHECKPOINT {String(index + 1).padStart(2, "0")}</span>
       <h3>{checkpoint.question}</h3>
       <details>
-        <summary>Mostra la risposta</summary>
+        <summary><span className="checkpoint-closed-label">Mostra</span><span className="checkpoint-open-label">Nascondi</span> la risposta</summary>
         <div className="checkpoint-answer">
           <strong>{checkpoint.answer}</strong>
           <p>{checkpoint.explanation}</p>

@@ -85,7 +85,7 @@ export default function LogicLab() {
   const [binaryB, setBinaryB] = useState("00000111");
   const [binaryOp, setBinaryOp] = useState<BinaryOperation>("+");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [theme, setTheme] = useState<"light" | "dark">(() => typeof document !== "undefined" && document.documentElement.dataset.theme === "dark" ? "dark" : "light");
+  const [theme, setTheme] = useState<"light" | "dark">("light");
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const info = gates.find((item) => item.name === gate) ?? gates[0];
   const output = useMemo(() => resultFor(gate, inputA, inputB), [gate, inputA, inputB]);
@@ -98,10 +98,16 @@ export default function LogicLab() {
   const decimalA = binaryAValid ? Number.parseInt(binaryA, 2) : null;
   const decimalB = binaryBValid ? Number.parseInt(binaryB, 2) : null;
   const calculation = decimalA === null || decimalB === null ? undefined : binaryOperation(decimalA, decimalB, binaryOp);
-  const calculationBits = calculation === undefined ? "—" : calculation === null ? "NON DEFINITO" : calculation < 0 ? `${calculation}₁₀` : formatBinary(calculation);
+  let signedWidth = 8;
+  if (typeof calculation === "number" && calculation < 0) {
+    while (calculation < -(2 ** (signedWidth - 1))) signedWidth += 1;
+  }
+  const signedBits = typeof calculation === "number" && calculation < 0
+    ? (2 ** signedWidth + calculation).toString(2).padStart(signedWidth, "0")
+    : null;
+  const calculationBits = calculation === undefined ? "—" : calculation === null ? "NON DEFINITO" : signedBits ? `${signedBits}₂` : formatBinary(calculation);
   const calculationOverflow = typeof calculation === "number" && calculation > 255;
   const calculationNegative = typeof calculation === "number" && calculation < 0;
-  const twosComplement = calculationNegative && calculation >= -128 ? (256 + calculation).toString(2).padStart(8, "0") : null;
   const wrappedEightBits = typeof calculation === "number" && calculation >= 0 ? (calculation & 255).toString(2).padStart(8, "0") : null;
   const resultDetail = calculation === undefined
     ? "Correggi gli operandi per eseguire il calcolo."
@@ -109,12 +115,10 @@ export default function LogicLab() {
       ? "Non puoi dividere per zero. Imposta l’operando B a un valore diverso da 0."
       : `${decimalA} ${binaryOp} ${decimalB} = ${calculation} in decimale`;
   const resultNote = calculationNegative
-    ? twosComplement
-      ? `Il risultato non è rappresentabile senza segno. In complemento a due su 8 bit: ${twosComplement}₂.`
-      : "Il risultato è fuori dal range signed a 8 bit (−128…127)."
+    ? `Risultato negativo: ${signedBits}₂ è la sua rappresentazione in complemento a due su ${signedWidth} bit. Non è rappresentabile senza segno.`
     : calculationOverflow
       ? `Overflow: servono ${calculation.toString(2).length} bit. Su 8 bit restano ${wrappedEightBits}₂.`
-      : "Gli operandi sono unsigned a 8 bit; i risultati aritmetici possono richiedere più di 8 bit.";
+      : "Gli operandi sono numeri a 8 bit senza segno (da 0 a 255); i risultati aritmetici possono richiedere più di 8 bit.";
   const conversionSteps = useMemo(() => {
     if (!decimalValid) return [];
     if (decimalValue === 0) return [{ value: 0, quotient: 0, remainder: 0 }];
@@ -128,9 +132,16 @@ export default function LogicLab() {
   }, [decimalValid, decimalValue]);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    window.localStorage.setItem("logiclab-theme", theme);
-  }, [theme]);
+    const frame = requestAnimationFrame(() => setTheme(document.documentElement.dataset.theme === "dark" ? "dark" : "light"));
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === "light" ? "dark" : "light";
+    setTheme(next);
+    document.documentElement.dataset.theme = next;
+    window.localStorage.setItem("logiclab-theme", next);
+  };
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -165,15 +176,15 @@ export default function LogicLab() {
   return (
     <main>
       <header className="topbar">
-        <a className="brand" href="#top" aria-label="LogicLab, torna all’inizio"><span className="brand-mark"><i /><i /><i /></span><span>LOGIC<span>LAB</span></span></a>
-        <nav className="nav-links" aria-label="Navigazione principale"><Link href="/impara">Lezioni</Link><Link href="/esercizi">Esercizi</Link><a href="#simulatore">Simulatore</a><Link href="/porte-logiche">Porte logiche</Link></nav>
+        <a className="brand" href="#top" aria-label="LogicLab, torna all’inizio"><span className="brand-mark brand-mark-logo" aria-hidden="true">L</span><span>LOGIC<span>LAB</span></span></a>
+        <nav className="nav-links" aria-label="Navigazione principale"><Link href="/impara">Lezioni</Link><Link href="/visualizza">Visualizza</Link><Link href="/esercizi">Esercizi</Link><a href="#simulatore">Simulatore</a><Link href="/porte-logiche">Porte logiche</Link></nav>
         <div className="topbar-actions">
           <span className="status"><i /> LAB ATTIVO</span>
-          <button className="theme-toggle" type="button" suppressHydrationWarning onClick={() => setTheme((value) => value === "light" ? "dark" : "light")} aria-label={theme === "light" ? "Attiva tema scuro" : "Attiva tema chiaro"}><span aria-hidden="true">{theme === "light" ? "☾" : "☀"}</span><b>{theme === "light" ? "NOTTE" : "GIORNO"}</b></button>
+          <button className="theme-toggle" type="button" onClick={toggleTheme} aria-label={theme === "light" ? "Attiva tema scuro" : "Attiva tema chiaro"}><span aria-hidden="true">{theme === "light" ? "☾" : "☀"}</span><b>{theme === "light" ? "NOTTE" : "GIORNO"}</b></button>
           <button ref={menuButtonRef} className="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="mobile-navigation" aria-label={menuOpen ? "Chiudi menu" : "Apri menu"} onClick={() => setMenuOpen((value) => !value)}><span aria-hidden="true">{menuOpen ? "×" : "☰"}</span></button>
         </div>
         <nav id="mobile-navigation" className={`mobile-navigation ${menuOpen ? "open" : ""}`} aria-label="Navigazione mobile" hidden={!menuOpen}>
-          <Link href="/impara" onClick={closeMenu}>Segui le lezioni</Link><Link href="/esercizi" onClick={closeMenu}>Allenati con gli esercizi</Link><a href="#simulatore" onClick={closeMenu}>Simula una porta</a><Link href="/porte-logiche" onClick={closeMenu}>Confronta le 7 porte</Link>
+          <Link href="/impara" onClick={closeMenu}>Segui le lezioni</Link><Link href="/visualizza" onClick={closeMenu}>Visualizza i circuiti</Link><Link href="/esercizi" onClick={closeMenu}>Allenati con gli esercizi</Link><a href="#simulatore" onClick={closeMenu}>Simula una porta</a><Link href="/porte-logiche" onClick={closeMenu}>Confronta le 7 porte</Link>
         </nav>
       </header>
 
@@ -350,7 +361,7 @@ export default function LogicLab() {
         <div className="example-cards">{gates.slice(0, 4).map((item) => <article key={item.name}><strong>{item.name}</strong><p>{item.example}</p></article>)}</div>
       </section>
 
-      <footer><a className="brand" href="#top"><span className="brand-mark"><i /><i /><i /></span><span>LOGIC<span>LAB</span></span></a><p>Porte logiche, conversioni e calcoli binari in un unico laboratorio interattivo.</p><Link href="/privacy">PRIVACY</Link><a href="#top">TORNA SU ↑</a></footer>
+      <footer><a className="brand" href="#top"><span className="brand-mark brand-mark-logo" aria-hidden="true">L</span><span>LOGIC<span>LAB</span></span></a><p>Porte logiche, conversioni e calcoli binari in un unico laboratorio interattivo.</p><Link href="/metodo">METODO</Link><Link href="/contatti">CONTATTI</Link><Link href="/privacy">PRIVACY</Link><a href="#top">TORNA SU ↑</a></footer>
     </main>
   );
 }

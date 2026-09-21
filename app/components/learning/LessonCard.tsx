@@ -8,7 +8,7 @@ export function LessonCard({ lesson }: { lesson: Lesson }) {
         <span>LEZIONE {String(lesson.order).padStart(2, "0")}</span>
         <span>{lesson.duration}</span>
       </div>
-      <h2><Link href={`/impara/${lesson.slug}`}>{lesson.title}</Link></h2>
+      <h3><Link href={`/impara/${lesson.slug}`}>{lesson.title}</Link></h3>
       <p>{lesson.description}</p>
       <div className="lesson-card-footer">
         <span>{lesson.level}</span>

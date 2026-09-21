@@ -116,6 +116,7 @@ html[data-theme="dark"] .conversion-method,html[data-theme="dark"] .bit-ruler bu
 html[data-theme="dark"] .bit-ruler button.active,html[data-theme="dark"] .output-on .output-card{background:var(--lime);color:#11130f}
 html[data-theme="dark"] .decimal-control input{color:var(--fg);border-color:var(--fg)}
 html[data-theme="dark"] .base-results>div:first-child strong{color:var(--lime)}
+html[data-theme="dark"] .binary-lab .binary-panel-title strong,html[data-theme="dark"] .conversion-method .binary-panel-title strong{color:var(--fg)}
 html[data-theme="dark"] .example-cards article{background:var(--surface)}
 
 @media(min-width:801px) and (max-width:1050px){.hero{grid-template-columns:minmax(0,1fr) minmax(280px,.72fr);gap:24px}.hero h1{font-size:clamp(64px,7vw,76px)}.topbar{padding-inline:32px}}
@@ -152,6 +153,33 @@ html[data-theme="dark"] .example-cards article{background:var(--surface)}
 .edu-site .learning-kicker,.edu-site .learning-section-label,.edu-site .exercises-eyebrow,.edu-site .lesson-section-number,.edu-site .checkpoint-number,.edu-site .exercise-category,.edu-site .gate-directory>article>strong,.edu-site .learning-outcomes li strong,.edu-site .learning-method-grid article>strong,.edu-site .lesson-card-footer>a span,.edu-site .gate-directory article>a:hover,.edu-site .checkpoint-answer>strong{color:var(--focus)}
 .edu-header .brand,.learning-breadcrumbs a,.breadcrumbs a,.exercises-breadcrumb a,.lesson-card-footer>a{min-height:44px;display:inline-flex;align-items:center}
 .edu-header nav{scrollbar-width:thin}.edu-header nav::-webkit-scrollbar{height:4px}.edu-header nav::-webkit-scrollbar-thumb{background:var(--lime-dark)}
+.learning-breadcrumbs ol{align-items:center;flex-wrap:wrap}.learning-breadcrumbs li{display:inline-flex;align-items:center;min-height:44px}.checkpoint-open-label{display:none}.lesson-checkpoint details[open] .checkpoint-open-label{display:inline}.lesson-checkpoint details[open] .checkpoint-closed-label{display:none}
+.lesson-card h3{font-size:29px;line-height:1.05;letter-spacing:-.045em;margin:42px 0 18px}.lesson-card h3 a:hover{text-decoration:underline;text-decoration-color:var(--lime-dark);text-underline-offset:5px}
 @media(max-width:680px){.edu-header nav{overflow:visible;flex-wrap:wrap}.edu-header nav a{min-height:42px}.edu-header{position:relative}}
 .exercise-gate-symbol{display:grid;justify-items:center;gap:4px}.exercise-gate-symbol img{width:140px;height:84px;object-fit:contain}.exercise-gate-symbol strong{font:700 12px var(--font-mono),monospace}.edu-site .exercise-gate-symbol img{filter:var(--edu-gate-filter,none)}html[data-theme="dark"] .edu-site{--edu-gate-filter:invert(1)}
+.contact-panel{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,.7fr);gap:50px;padding:55px 0 85px;border-top:1px solid var(--line)}.contact-panel h2{font-size:clamp(36px,4vw,58px);letter-spacing:-.055em;line-height:1.02;margin:22px 0}.contact-panel p{max-width:600px;color:var(--muted-strong);line-height:1.65}.contact-email{display:inline-flex;align-items:center;gap:20px;max-width:100%;margin-top:28px;padding:19px 22px;background:var(--fg);color:var(--bg);font-weight:700;overflow-wrap:anywhere}.contact-email:hover{background:var(--lime);color:#11130f}.contact-panel aside{background:var(--surface);border:1px solid var(--line);padding:28px;align-self:start}.contact-panel aside h3{font-size:22px;margin:0 0 24px}.contact-panel aside p{margin-bottom:28px}.contact-panel aside a{text-decoration:underline;text-underline-offset:4px}
+.exercises-page .learning-method-grid article{display:flex;flex-direction:column}.exercises-page .learning-method-grid article h3{margin-top:24px}.exercises-page .learning-method-grid article>a{margin-top:auto;padding-top:18px;font:700 11px var(--font-mono),monospace;letter-spacing:.04em;text-decoration:underline;text-underline-offset:5px}
+.legal-page p a{text-decoration:underline;text-underline-offset:4px;color:var(--fg)}
+@media(max-width:680px){.contact-panel{grid-template-columns:1fr;gap:30px;padding:35px 0 60px}.contact-email{font-size:12px;gap:8px}}
 @media(max-width:680px){.exercise-gate-symbol img{width:100px;height:60px}}
+
+/* Navigazione: il marchio non deve sembrare un pulsante menu. */
+.brand .brand-mark-logo{width:31px;height:31px;display:grid;place-items:center;flex:none;border:2px solid currentColor;border-radius:50%;font:700 17px/1 var(--font-mono),monospace;letter-spacing:-.08em}
+.brand .brand-mark-logo::before,.brand .brand-mark-logo::after{content:none}
+.exercise-scroll-cue{display:none}
+@media(max-width:680px){
+  .exercise-scroll-cue{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:22px 0 8px;color:var(--muted-strong);font:700 11px/1.45 var(--font-mono),monospace}
+  .exercise-scroll-cue span{font-size:20px;line-height:1;color:var(--focus)}
+  .exercise-navigation{margin-top:0}
+  .exercise-step-list{scrollbar-width:thin;overscroll-behavior-inline:contain;scroll-snap-type:x proximity}
+  .exercise-step-list li{scroll-snap-align:start}
+  .exercise-step-list::-webkit-scrollbar{height:5px}
+  .exercise-step-list::-webkit-scrollbar-thumb{background:var(--focus)}
+}
+.edu-nav-hint{display:none}
+@media(max-width:680px){
+  .edu-header nav{order:3;width:calc(100% - 73px);min-width:0;max-width:none;margin:0;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;white-space:nowrap;scrollbar-width:thin;overscroll-behavior-inline:contain}
+  .edu-header nav a{flex:none}
+  .edu-nav-hint{order:4;display:flex;align-items:center;justify-content:flex-end;width:61px;min-height:44px;margin-left:auto;color:var(--muted-strong);font:700 10px var(--font-mono),monospace;white-space:nowrap}
+}
+.edu-site :is(.learning-kicker,.learning-section-label,.exercises-eyebrow,.lesson-section-number,.checkpoint-number,.exercise-category,.lesson-card-meta,.lesson-facts dt,.gate-directory-top small){font-size:12px;letter-spacing:.04em}

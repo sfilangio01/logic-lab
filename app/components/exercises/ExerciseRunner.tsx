@@ -86,8 +86,20 @@ function readProgress(): ExerciseProgressV1 {
     if (!stored) return emptyProgress;
     const parsed: unknown = JSON.parse(stored);
     if (!isProgress(parsed)) return emptyProgress;
+    const answers = Object.fromEntries(Object.entries(parsed.answers).flatMap(([id, value]) => {
+      const exercise = exercises.find((item) => item.id === id);
+      if (!exercise || !value || typeof value !== "object") return [];
+      const saved = value as Partial<SavedAnswer>;
+      if (typeof saved.answer !== "string") return [];
+      return [[id, {
+        answer: saved.answer,
+        correct: saved.answer === exercise.correctChoiceId,
+        attempts: typeof saved.attempts === "number" && Number.isFinite(saved.attempts) ? saved.attempts : 1,
+      }]];
+    }));
     return {
       ...parsed,
+      answers,
       currentIndex: Math.min(Math.max(0, parsed.currentIndex), exercises.length - 1),
     };
   } catch {
@@ -105,7 +117,7 @@ export default function ExerciseRunner() {
   const feedbackRef = useRef<HTMLDivElement>(null);
   const exercise = exercises[currentIndex];
 
-  const completedCount = useMemo(() => Object.keys(progress.answers).length, [progress.answers]);
+  const attemptedCount = useMemo(() => Object.keys(progress.answers).length, [progress.answers]);
   const correctCount = useMemo(() => Object.values(progress.answers).filter((answer) => answer.correct).length, [progress.answers]);
 
   useEffect(() => {
@@ -158,7 +170,7 @@ export default function ExerciseRunner() {
         ...progress.answers,
         [exercise.id]: {
           answer: selectedChoice,
-          correct: Boolean(previous?.correct || correct),
+          correct,
           attempts: (previous?.attempts ?? 0) + 1,
         },
       },
@@ -198,8 +210,8 @@ export default function ExerciseRunner() {
       </header>
 
       <div className="exercise-progress-summary">
-        <label htmlFor="exercise-progress">Progresso: {completedCount} completati, {correctCount} corretti</label>
-        <progress id="exercise-progress" max={exercises.length} value={completedCount}>{completedCount} di {exercises.length}</progress>
+        <label htmlFor="exercise-progress">Progresso: {attemptedCount} {attemptedCount === 1 ? "tentato" : "tentati"}, {correctCount} {correctCount === 1 ? "corretto" : "corretti"}</label>
+        <progress id="exercise-progress" max={exercises.length} value={attemptedCount}>{attemptedCount} di {exercises.length}</progress>
       </div>
 
       <article className="exercise-card">
@@ -243,9 +255,10 @@ export default function ExerciseRunner() {
         )}
       </article>
 
+      <p className="exercise-scroll-cue" id="exercise-scroll-cue">Scorri i numeri per vedere tutti gli esercizi <span aria-hidden="true">↔</span></p>
       <nav className="exercise-navigation" aria-label="Navigazione tra gli esercizi">
         <button type="button" disabled={currentIndex === 0} onClick={() => goToExercise(currentIndex - 1)}>← Precedente</button>
-        <ol className="exercise-step-list" aria-label="Elenco esercizi">
+        <ol className="exercise-step-list" aria-label="Elenco esercizi, scorribile orizzontalmente" aria-describedby="exercise-scroll-cue">
           {exercises.map((item, index) => (
             <li key={item.id}>
               <button
