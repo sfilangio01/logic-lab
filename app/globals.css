@@ -153,3 +153,5 @@ html[data-theme="dark"] .example-cards article{background:var(--surface)}
 .edu-header .brand,.learning-breadcrumbs a,.breadcrumbs a,.exercises-breadcrumb a,.lesson-card-footer>a{min-height:44px;display:inline-flex;align-items:center}
 .edu-header nav{scrollbar-width:thin}.edu-header nav::-webkit-scrollbar{height:4px}.edu-header nav::-webkit-scrollbar-thumb{background:var(--lime-dark)}
 @media(max-width:680px){.edu-header nav{overflow:visible;flex-wrap:wrap}.edu-header nav a{min-height:42px}.edu-header{position:relative}}
+.exercise-gate-symbol{display:grid;justify-items:center;gap:4px}.exercise-gate-symbol img{width:140px;height:84px;object-fit:contain}.exercise-gate-symbol strong{font:700 12px var(--font-mono),monospace}.edu-site .exercise-gate-symbol img{filter:var(--edu-gate-filter,none)}html[data-theme="dark"] .edu-site{--edu-gate-filter:invert(1)}
+@media(max-width:680px){.exercise-gate-symbol img{width:100px;height:60px}}

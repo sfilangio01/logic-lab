@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import {
   exerciseCategoryLabels,
   exercises,
@@ -38,7 +39,7 @@ function ExerciseVisualisation({ visual }: { visual: ExerciseVisual }) {
           {visual.inputs.map((input) => <span className="exercise-signal" key={input.label}><span>{input.label}</span><strong>{input.value}</strong></span>)}
         </div>
         <span className="exercise-flow-arrow" aria-hidden="true">→</span>
-        <strong className="exercise-gate-name">{visual.gate}</strong>
+        <span className="exercise-gate-symbol"><Image src={`/gates/${visual.gate.toLowerCase()}.svg`} alt="" width={200} height={120} /><strong>{visual.gate}</strong></span>
         <span className="exercise-flow-arrow" aria-hidden="true">→</span>
         <strong className="exercise-output-unknown">?</strong>
       </div>
